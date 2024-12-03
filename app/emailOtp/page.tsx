@@ -1,101 +1,3 @@
-
-
-// "use client";
-
-// import { useState } from "react";
-// import { signIn, verifyOTP } from "./api/otp";
-// import { useRouter } from "next/navigation";
-
-// export default function OtpLoginPage() {
-//   const [phone, setPhone] = useState(""); // Store the phone number
-//   const [otp, setOtp] = useState(""); // Store the OTP
-//   const [step, setStep] = useState(1); // Track current step: 1 = Login, 2 = Verify
-//   const [message, setMessage] = useState(""); // Display messages
-
-//   const router = useRouter();
-//   const handleSendOtp = async (e: React.FormEvent) => {
-//     e.preventDefault();
-//     const formData = new FormData();
-//     formData.append("phone", phone);
-//     try {
-//       setMessage("OTP sent successfully. Check your phone!");
-//       setStep(2);
-//       await signIn(formData);
-//       // Move to OTP verification step
-//     } catch (error) {
-//       console.error("Error sending OTP:", error);
-//       setMessage("Failed to send OTP. Please try again.");
-//     }
-//   };
-
-//   const handleVerifyOtp = async (e: React.FormEvent) => {
-//     e.preventDefault();
-//     const formData = new FormData();
-//     formData.append("phone", phone);
-//     formData.append("token", otp);
-
-//     try {
-//       setMessage("OTP verified successfully! Redirecting...");
-//       await verifyOTP(formData);
-//       router.push("/sample");
-
-//     } catch (error) {
-//       console.error("Error verifying OTP:", error);
-//       setMessage("Invalid OTP. Please try again.");
-//     }
-//   };
-
-//   return (
-//     <div className="container mx-auto p-4">
-//       <h1 className="text-2xl font-bold mb-4">OTP Authentication</h1>
-//       {message && <p className="mb-4 text-green-600">{message}</p>}
-
-//       {step === 1 && (
-//         <form onSubmit={handleSendOtp} className="space-y-4">
-//           <label className="block">
-//             Phone Number (with +country code):
-//             <input
-//               type="text"
-//               value={phone}
-//               onChange={(e) => setPhone(e.target.value)}
-//               className="w-full p-2 border rounded"
-//               required
-//             />
-//           </label>
-//           <button
-//             type="submit"
-//             className="px-4 py-2 bg-blue-500 text-white rounded"
-//           >
-//             Send OTP
-//           </button>
-//         </form>
-//       )}
-
-//       {step === 2 && (
-//         <form onSubmit={handleVerifyOtp} className="space-y-4">
-//           <label className="block">
-//             OTP:
-//             <input
-//               type="text"
-//               value={otp}
-//               onChange={(e) => setOtp(e.target.value)}
-//               className="w-full p-2 border rounded"
-//               required
-//             />
-//           </label>
-//           <button
-//             type="submit"
-//             className="px-4 py-2 bg-green-500 text-white rounded"
-//           >
-//             Verify OTP
-//           </button>
-//         </form>
-//       )}
-//     </div>
-//   );
-// }
-
-
 // "use client";
 
 // import Link from "next/link";
@@ -223,37 +125,30 @@
 "use client";
 
 import { useState } from "react";
-import { signIn, verifyOTP } from "./api/otp";
+import { signIn, verifyOTP } from "../api/otp";
 import { useRouter } from "next/navigation";
 import { error } from "console";
-import { supabase } from "@/utils/supabaseClient";
-import UserService from "./service/userService";
+
 export default function OtpLoginPage() {
   const [email, setemail] = useState(""); // Store the email number
   const [otp, setOtp] = useState(""); // Store the OTP
   const [step, setStep] = useState(1); // Track current step: 1 = Login, 2 = Verify
   const [message, setMessage] = useState(""); // Display messages
-  const service:UserService = new UserService();
+
   const router = useRouter();
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData();
     formData.append("email", email);
     try {
-      const result = await service.sendOtp(formData.get("email") as string);
+      const result = await signIn(formData);
       console.log("result is", result);
-      if (result == true) {
+      if (result) {
         setMessage("OTP sent successfully. Check your email!");
         setStep(2);
       }
-      else if (result == false) {
-        setMessage("Failed to send OTP. Please check your email and try again.");
-      }
       else{
-        setMessage(result+", Please try again later.");
-        // if(result == "email rate limit exceeded"){
-        //   setMessage("Please try again after 1 minute ");
-        // }
+        setMessage("Failed to send OTP. Please check your email and try again.");
       }
     
       // Move to OTP verification step
@@ -271,8 +166,7 @@ export default function OtpLoginPage() {
     setMessage("");
     try {
       console.log("form data is", formData.get("email"));
-      //const result = await supabase.auth.verifyOtp
-       const result = await service.verifyOtpAndSignIn(formData);
+      const result = await verifyOTP(formData);
       //validate if my otp entered and otp generated are matched or not 
       if(result){
         setMessage("OTP verified successfully! Redirecting...");
@@ -337,49 +231,3 @@ export default function OtpLoginPage() {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-// const requestOtp = async () => {
-//   if (isCooldown) return;
-
-//   try {
-//     // Your Supabase OTP request logic
-//     const { error } = await supabase.auth.signInWithOtp({ email: 'user@example.com' });
-//     if (error) throw error;
-
-//     // Start cooldown
-//     setIsCooldown(true);
-//     setCountdown(60); // 60 seconds cooldown
-//     const interval = setInterval(() => {
-//       setCountdown((prev) => {
-//         if (prev <= 1) {
-//           clearInterval(interval);
-//           setIsCooldown(false);
-//           return 0;
-//         }
-//         return prev - 1;
-//       });
-//     }, 1000);
-//   } catch (error) {
-//     console.error('Error requesting OTP:', error.message);
-//   }
-// };
-
-// return (
-//   <div>
-//     <button onClick={requestOtp} disabled={isCooldown}>
-//       {isCooldown ? `Wait ${countdown}s` : 'Request OTP'}
-//     </button>
-//   </div>
-// );
-// };
-
-// export default OtpRequest;
