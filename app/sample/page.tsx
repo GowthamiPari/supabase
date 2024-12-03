@@ -392,61 +392,6 @@ import reasoningData from "../../public/reasoning.json";
 import { supabase } from "@/utils/supabaseClient";
 import { useRouter } from "next/navigation";
 
-// Sign-In Component
-// const SignIn = ({ onSignIn }: { onSignIn: (email: string) => void }) => {
-//   const [email, setEmail] = useState("");
-//   const [message, setMessage] = useState<string | null>(null);
-//   const [error, setError] = useState<string | null>(null);
-//   // const handleSubmit = () => {
-//   //   if (email && username) {
-//   //     onSignIn(email, username); // Call the function passed via props
-//   //   } else {
-//   //     alert("Please fill in all fields.");
-//   //   }
-//   // };
-//   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-//     e.preventDefault();
-//     const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-// if (!isValidEmail) {
-//   setError("Please enter a valid email.");
-//   return;
-// }
-//     // Clear previous messages
-//     setMessage(null);
-//     setError(null);
-
-//     const { data, error } = await supabase.auth.signInWithOtp({ email });
-//       options: { emailRedirectTo: window.location.origin }
-//     if (error) {
-//       setError(`Error: ${error.message}`);
-//       console.error('Error signing in:', error.message);
-//     } else {
-//       setMessage('OTP sent to your email. Please check your inbox.');
-//       console.log('OTP sent:', data);
-//     }
-//   };
-
-//   return (
-//     <div className="p-6 bg-gray-100 min-h-screen flex flex-col items-center">
-//       <h1 className="text-2xl font-bold mb-4">Please Sign In</h1>
-//       <form onSubmit={handleSubmit} className="mb-4 flex flex-col items-center">      
-//         <input
-//           type="email"
-//           placeholder="Email"
-//           value={email}
-//           onChange={(e) => setEmail(e.target.value)}
-//           className="border border-gray-300 p-2 rounded w-full mb-2"
-//         />
-//       <button
-//         className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition-all duration-300"
-//       >
-//         Sign In
-//       </button>
-//       </form>
-//     </div>
-//   );
-// };
-
 // Main Game Page Component
 const Page = () => {
   const [signedIn, setSignedIn] = useState(false);
@@ -772,14 +717,14 @@ const Page = () => {
                     </p>
                     <p
                       className={`${
-                        userAnswers[index].toLowerCase().trim() ===
-                        q.answer.toLowerCase().trim()
+                        userAnswers[index].toLowerCase().trim().replace(/[^a-zA-Z0-9]/g, '') ===
+                        q.answer.toLowerCase().trim().replace(/[^a-zA-Z0-9]/g, '')
                           ? "text-green-600"
                           : "text-red-600"
                       }`}
                     >
-                      {userAnswers[index].toLowerCase().trim() ===
-                      q.answer.toLowerCase().trim()
+                      {userAnswers[index].toLowerCase().trim().replace(/[^a-zA-Z0-9]/g, '') ===
+                      q.answer.toLowerCase().trim().replace(/[^a-zA-Z0-9]/g, '')
                         ? "Correct"
                         : "Incorrect"}
                     </p>
