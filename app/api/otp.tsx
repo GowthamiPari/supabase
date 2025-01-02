@@ -212,6 +212,13 @@ export const verifyOTP = async (formData: FormData) => {
     });
     console.log("data in otp.tsx - verifyOTP",data);
     console.log("entering if statement in try block of otp.tsx");
+
+  if (!data || !data.user || !data.session) {
+    console.error("OTP verified, but user or session is null.");
+    result = false;
+    return result;
+  }
+
     if (error) {
       console.error("Error verifying OTP:", error.message);
       result = false;

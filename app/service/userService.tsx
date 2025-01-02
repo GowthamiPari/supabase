@@ -2,32 +2,71 @@ import { supabase } from "@/utils/supabaseClient";
 import { UserRepository } from "../repositories/userRepository";
 import { verifyOTP } from "../api/otp";
 import sgMail from '@sendgrid/mail';
+import { SupabaseClient, createClient } from "@supabase/supabase-js";
+import { UserModel } from "../models/userModel";
 class UserService {
-    private repository: UserRepository;
+    //private repository: UserRepository;
 
-    constructor() {
-      this.repository = new UserRepository();
-    //   sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
-    }
+    // constructor() {
+    //   this.repository = new UserRepository();
+    // //   sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
+    // }
     //repository = new UserRepository();
+  private static instance: UserService;
+  private userRepository: UserRepository;
+  private currentUser: UserModel | null = null;
+  private currentUserId: string | null = null;
+  private currentUserEmail: string | null = null;
+
+  private constructor(supabase?: SupabaseClient, userRepository?: UserRepository) {
+    //this.supabase = supabase || createClient('SUPABASE_URL', 'SUPABASE_ANON_KEY');
+    this.userRepository = userRepository || new UserRepository();
+  }
+  public static getInstance(): UserService {
+    if (!UserService.instance) {
+      UserService.instance = new UserService();
+    }
+    return UserService.instance;
+  }
+
+  public getCurrentUserId(): string | null {
+    return this.currentUserId;
+  }
+
+  public getCurrentUserEmail(): string | null {
+    return this.currentUserEmail;
+  }
+
+  private setCurrentUser(user: UserModel): void {
+    this.currentUser = user;
+    this.currentUserId = user.uid;
+  }
+
+  private setCurrentUserId(uid: string): void {
+    this.currentUserId = uid;
+  }
+
+  private setCurrentUserEmail(email: string): void {
+    this.currentUserEmail = email;
+  }
   async sendOtp(email: string): Promise<boolean | string> {
     try {
     //   const isEmailExists = await this.doesEmailExist(email);
     console.log("Email in send otp method of service page:", email);
-    const isEmailExists = await this.repository.doesEmailExist(email);
+    const isEmailExists = await this.userRepository.doesEmailExist(email);
     console.log("Email exists:", isEmailExists);
       if (isEmailExists == false) {
-        const tempPassword = this.generateSecurePassword();
-        const { data,error } = await supabase.auth.signUp({
-          email,
-          password: tempPassword,
-        });
-        console.log("Data in send otp method of service page:", data);
+        // const tempPassword = this.generateSecurePassword();
+        // const { data,error } = await supabase.auth.signUp({
+        //   email,
+        //   password: tempPassword,
+        // });
+        // console.log("Data in send otp method of service page:", data);
 
-        if (error) {
-          console.error('Error creating user:', error.message);
-          return false;
-        }
+        // if (error) {
+        //   console.error('Error creating user:', error.message);
+        //   return false;
+        //}
 
         await this.createSupabaseUser(email);
       }
@@ -42,7 +81,7 @@ class UserService {
 
   async verifyOtpAndSignIn(formData:FormData): Promise<boolean> {
     const email = formData.get("email") as string;
-
+    let userId = "";
     try {
       const otpVerified = await verifyOTP(formData);
 
@@ -50,8 +89,10 @@ class UserService {
         console.error('OTP verification failed');
         return false;
       }
-      const mail = await this.repository.getUserByEmail(email);
+      let mail = await this.userRepository.getUserByEmail(email);
+      //userId = mail.uid; 
       console.log("Email in verify otp and sign in method of service page:", mail);
+      this.setCurrentUserId(mail.uid);
 
     //   const { data, error } = await supabase.auth.signInWithPassword({
     //     email,
@@ -104,12 +145,13 @@ class UserService {
   }
 
   private async createSupabaseUser(email: string): Promise<void> {
-    const { error } = await supabase.from('users').insert({
-      email,
+    const {data, error } = await supabase.from('users').insert({
+      email:email,
       created_at: new Date(),
       last_login_at: new Date(),
       is_email_verified: false,
     });
+    console.log("Data in createSupabaseUser method of service page:", data);
 
     if (error) {
       console.error('Error creating user in Supabase:', error.message);
@@ -137,32 +179,7 @@ private generateOtp(): string {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     return otp;
   }
-// private async sendOtpEmail(email: string): Promise<boolean> {
-//     try {
-//       // Generate OTP (For example, a random 6-digit number)
-//       const otp = this.generateOtp();
 
-//       // Prepare the email content
-//       const msg = {
-//         to: email,
-//         from: 'your-email@example.com', // Your verified sender email
-//         subject: 'Your OTP Code',
-//         text: `Your OTP code is ${otp}`,
-//         html: `<strong>Your OTP code is ${otp}</strong>`,
-//       };
-
-//       // Send email using SendGrid
-//       const response = await sgMail.send(msg);
-
-//       // Handle response from SendGrid (optional)
-//       console.log('OTP email sent', response);
-      
-//       return true;
-//     } catch (error) {
-//       console.error('Error sending OTP email:', error);
-//       return false;
-//     }
-//   }
 
   private async verifyOtp(otp: string): Promise<boolean> {
     // Implement your OTP verification logic here

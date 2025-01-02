@@ -212,16 +212,20 @@ export class UserRepository {
 //       return false;
 //     }
 //   }
-async doesEmailExist(email: string): Promise<boolean> {
+async doesEmailExist(email: string) {
     try {
       const { data, error, status } = await supabase
         .from("users")
         .select("email")
         .eq("email", email)
         .limit(1)
-        .single();
-  
+       
+  console.log("data in doesEmailExist",data);
+  if(data?.length == 0 || data?.length == null){
+    return false;
+  }
       if (error) {
+        console.error("Error checking email existence:", error);
         if (error.code === "PGRST116") {
           // Handle "No data found" error gracefully
           return false;

@@ -233,7 +233,7 @@ export default function OtpLoginPage() {
   const [otp, setOtp] = useState(""); // Store the OTP
   const [step, setStep] = useState(1); // Track current step: 1 = Login, 2 = Verify
   const [message, setMessage] = useState(""); // Display messages
-  const service:UserService = new UserService();
+  const service:UserService = UserService.getInstance();
   const router = useRouter();
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -273,6 +273,8 @@ export default function OtpLoginPage() {
       console.log("form data is", formData.get("email"));
       //const result = await supabase.auth.verifyOtp
        const result = await service.verifyOtpAndSignIn(formData);
+       console.log("USER ID IS: "+service.getCurrentUserId());
+       localStorage.setItem("user_id",service.getCurrentUserId() as string);
       //validate if my otp entered and otp generated are matched or not 
       if(result){
         setMessage("OTP verified successfully! Redirecting...");
